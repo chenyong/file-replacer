@@ -1,0 +1,84 @@
+{
+ :sessions {}
+ :users {
+  "0RqAhUtpE" {:name "root", :id "0RqAhUtpE", :nickname "root", :avatar nil, :password "d41d8cd98f00b204e9800998ecf8427e", :theme :star-trail}
+ }
+ :ir {
+  :package "app"
+  :files {
+   "app.main" {
+    :ns {
+     :type :expr, :by "0RqAhUtpE", :at 1543898074883, :id "-ub1jG9OA0"
+     :data {
+      "T" {:type :leaf, :by "0RqAhUtpE", :at 1543898074883, :text "ns", :id "tmnINDungP"}
+      "j" {:type :leaf, :by "0RqAhUtpE", :at 1543898074883, :text "app.main", :id "w2wpHAvoGk"}
+     }
+    }
+    :defs {
+     "main!" {
+      :type :expr, :by "0RqAhUtpE", :at 1543898077125, :id "tCV9PMyM1t"
+      :data {
+       "T" {:type :leaf, :by "0RqAhUtpE", :at 1543898077125, :text "defn", :id "CaQ70VX7Hx"}
+       "j" {:type :leaf, :by "0RqAhUtpE", :at 1543898077125, :text "main!", :id "pn_wBXThFe"}
+       "r" {
+        :type :expr, :by "0RqAhUtpE", :at 1543898077125, :id "T-ZeF9fuy7"
+        :data {}
+       }
+       "v" {
+        :type :expr, :by "0RqAhUtpE", :at 1543898083869, :id "lxKwASxDc"
+        :data {
+         "T" {:type :leaf, :by "0RqAhUtpE", :at 1543898087313, :text "task!", :id "lxKwASxDcleaf"}
+        }
+       }
+      }
+     }
+     "reload!" {
+      :type :expr, :by "0RqAhUtpE", :at 1543898078469, :id "jyhx2solbY"
+      :data {
+       "T" {:type :leaf, :by "0RqAhUtpE", :at 1543898078469, :text "defn", :id "Sw50Ay2d33"}
+       "j" {:type :leaf, :by "0RqAhUtpE", :at 1543898078469, :text "reload!", :id "lPn51Sc1TF"}
+       "r" {
+        :type :expr, :by "0RqAhUtpE", :at 1543898078469, :id "8BMWptRH06"
+        :data {}
+       }
+       "v" {
+        :type :expr, :by "0RqAhUtpE", :at 1543898099773, :id "lUg2oV0Nd"
+        :data {
+         "T" {:type :leaf, :by "0RqAhUtpE", :at 1543898101507, :text "task!", :id "lUg2oV0Ndleaf"}
+        }
+       }
+      }
+     }
+     "task!" {
+      :type :expr, :by "0RqAhUtpE", :at 1543898090028, :id "1fiOoOjWPB"
+      :data {
+       "T" {:type :leaf, :by "0RqAhUtpE", :at 1543898090028, :text "defn", :id "KXUoqZxpda"}
+       "j" {:type :leaf, :by "0RqAhUtpE", :at 1543898090028, :text "task!", :id "NkOCRVHs6u"}
+       "r" {
+        :type :expr, :by "0RqAhUtpE", :at 1543898090028, :id "DjBPXei4AF"
+        :data {}
+       }
+       "v" {
+        :type :expr, :by "0RqAhUtpE", :at 1543898091480, :id "Mgp5tAGxix"
+        :data {
+         "T" {:type :leaf, :by "0RqAhUtpE", :at 1543898093174, :text "println", :id "Mgp5tAGxixleaf"}
+         "j" {:type :leaf, :by "0RqAhUtpE", :at 1543898248427, :text "\"Running task", :id "jTeopHK7JD"}
+        }
+       }
+      }
+     }
+    }
+    :proc {
+     :type :expr, :by "0RqAhUtpE", :at 1543898074883, :id "GoTDU6eomL"
+     :data {}
+    }
+   }
+  }
+ }
+ :saved-files {}
+ :configs {:storage-key "calcit.edn", :local-storage-key "calcit-storage", :extension ".cljs", :output "src", :port 6001}
+ :repl {
+  :alive? false
+  :logs {}
+ }
+}
