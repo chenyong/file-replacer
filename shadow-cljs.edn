@@ -1,6 +1,6 @@
 
 {:source-paths ["src"]
- :dependencies []
+ :dependencies [[org.clojure/core.incubator "0.1.4"]]
  :builds {:app {:target :node-script
                 :output-to "target/main.js"
                 :main app.main/main!
