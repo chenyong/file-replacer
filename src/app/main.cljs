@@ -13,8 +13,9 @@
 
 (defn file-filter [x]
   (cond
-    (string/ends-with? x "route-configs.ts") true
-    (string/ends-with? x ".tsx") false
+    (string/ends-with? x "route-configs.ts") false
+    (string/includes? x "apis/") false
+    (string/ends-with? x ".tsx") true
     (string/ends-with? x ".ts") false
     :else false))
 
@@ -24,12 +25,14 @@
 
 (defn grab-component-refs! [file-path content write!]
   (let [lines (->> (string/split-lines content)
-                   (filter (fn [line] (and (string/includes? line "component"))))
+                   (filter
+                    (fn [line]
+                      (and (string/includes? line "components=")
+                           (not (string/includes? line "import")))))
                    (map string/trim))]
     (when (not (empty? lines))
       (println)
-      (println file-path)
-      (println "====")
+      (println "-------" file-path "------")
       (doseq [line lines] (println line)))))
 
 (defn replace-code-import-space! [file-path content write!]
@@ -120,7 +123,7 @@
            (fs/writeFileSync x content)))))
     (doseq [x (filter folder-filter folders)] (traverse! x))))
 
-(defn task! [] (println "Running task") (traverse! "."))
+(defn task! [] (println "Task started") (traverse! ".") (println "Task finished"))
 
 (defn main! [] (task!))
 
