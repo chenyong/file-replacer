@@ -9,10 +9,12 @@
 
 (defonce *counter (atom 0))
 
+(defn a-folder? [x] (let [stat (fs/statSync x)] (.isDirectory stat)))
+
 (defn file-filter [x]
   (cond
-    (string/starts-with? x ".") false
-    (string/ends-with? x ".tsx") true
+    (string/ends-with? x "route-configs.ts") true
+    (string/ends-with? x ".tsx") false
     (string/ends-with? x ".ts") false
     :else false))
 
@@ -20,23 +22,31 @@
   (let [ignored #{"node_modules" ".git"}]
     (cond (contains? ignored x) false (string/starts-with? x ".") false :else true)))
 
-(defn replace-file! [file-path idx content write!]
-  (comment println "content" (subs content 0 200))
-  (comment
-   let
-   ((x1 (re-pattern "import \\{\\s+(\\w+\\,?\\s+)*\\} from \"shared/common/layout\";"))
-    (new-text
-     (string/replace
-      content
-      x1
-      (fn [chunk]
-        (let [target (first chunk)]
-          (if (string/includes? target "\n")
-            (-> target
-                (string/replace (re-pattern "\\n\\s*") " ")
-                (string/replace ", }" " }"))
-            target))))))
-   (if (not (= new-text content)) (do (println file-path) (comment write! new-text))))
+(defn grab-component-refs! [file-path content write!]
+  (let [lines (->> (string/split-lines content)
+                   (filter (fn [line] (and (string/includes? line "component"))))
+                   (map string/trim))]
+    (when (not (empty? lines))
+      (println)
+      (println file-path)
+      (println "====")
+      (doseq [line lines] (println line)))))
+
+(defn replace-code-import-space! [file-path content write!]
+  (let [x1 (re-pattern "import \\{\\s+(\\w+\\,?\\s+)*\\} from \"shared/common/layout\";")
+        new-text (string/replace
+                  content
+                  x1
+                  (fn [chunk]
+                    (let [target (first chunk)]
+                      (if (string/includes? target "\n")
+                        (-> target
+                            (string/replace (re-pattern "\\n\\s*") " ")
+                            (string/replace ", }" " }"))
+                        target))))]
+    (if (not (= new-text content)) (do (println file-path) (comment write! new-text)))))
+
+(defn replace-code-layout! [file-path content write!]
   (let [lines (string/split-lines content)
         x0 "import { "
         x1 " } from \"shared/common/layout\";"
@@ -87,11 +97,15 @@
       (println (chalk/yellow file-path))
       (comment write! new-content))))
 
+(defn replace-file! [file-path idx content write!]
+  (comment println file-path)
+  (grab-component-refs! file-path content write!)
+  (comment replace-code-import-space! file-path content write!)
+  (comment replace-code-layout! file-path content write!))
+
 (defn traverse! [base]
   (let [children (->> (js->clj (fs/readdirSync base)) (map (fn [x] (path/join base x))) set)
-        folders (->> children
-                     (filter (fn [x] (let [stat (fs/statSync x)] (.isDirectory stat))))
-                     set)
+        folders (->> children (filter a-folder?) set)
         files (difference children folders)]
     (doseq [x (filter file-filter files)]
       (when (or true (< @*counter 20))
