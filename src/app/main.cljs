@@ -4,10 +4,9 @@
             ["path" :as path]
             [clojure.string :as string]
             [clojure.set :refer [difference intersection]]
-            ["chalk" :as chalk])
+            ["chalk" :as chalk]
+            [cljs.core.async :refer [chan <! >! close! go]])
   (:require-macros [clojure.core.strint :refer [<<]]))
-
-(defonce *counter (atom 0))
 
 (defn a-folder? [x] (let [stat (fs/statSync x)] (.isDirectory stat)))
 
@@ -26,14 +25,9 @@
 (defn grab-component-refs! [file-path content write!]
   (let [lines (->> (string/split-lines content)
                    (filter
-                    (fn [line]
-                      (and (string/includes? line "components=")
-                           (not (string/includes? line "import")))))
+                    (fn [line] (string/includes? line "materials: plantData.materials")))
                    (map string/trim))]
-    (when (not (empty? lines))
-      (println)
-      (println "-------" file-path "------")
-      (doseq [line lines] (println line)))))
+    (when (not (empty? lines)) (println file-path (count lines) "materials"))))
 
 (defn replace-code-import-space! [file-path content write!]
   (let [x1 (re-pattern "import \\{\\s+(\\w+\\,?\\s+)*\\} from \"shared/common/layout\";")
@@ -100,7 +94,7 @@
       (println (chalk/yellow file-path))
       (comment write! new-content))))
 
-(defn replace-file! [file-path idx content write!]
+(defn replace-file! [file-path content write!]
   (comment println file-path)
   (grab-component-refs! file-path content write!)
   (comment replace-code-import-space! file-path content write!)
@@ -111,20 +105,17 @@
         folders (->> children (filter a-folder?) set)
         files (difference children folders)]
     (doseq [x (filter file-filter files)]
-      (when (or true (< @*counter 20))
-        (swap! *counter inc)
-        (comment println (chalk/yellow (<< "File: ~{x}")))
-        (replace-file!
-         x
-         @*counter
-         (fs/readFileSync x "utf8")
-         (fn [content]
-           (println (chalk/red (<< "Writing to ~{x}")))
-           (fs/writeFileSync x content)))))
+      (comment println (chalk/yellow (<< "File: ~{x}")))
+      (replace-file!
+       x
+       (fs/readFileSync x "utf8")
+       (fn [content]
+         (println (chalk/red (<< "Writing to ~{x}")))
+         (fs/writeFileSync x content))))
     (doseq [x (filter folder-filter folders)] (traverse! x))))
 
 (defn task! [] (println "Task started") (traverse! ".") (println "Task finished"))
 
 (defn main! [] (task!))
 
-(defn reload! [] (reset! *counter 0) (task!))
+(defn reload! [] (task!))
