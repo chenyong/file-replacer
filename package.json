@@ -17,6 +17,7 @@
     "ws": "^6.1.2"
   },
   "dependencies": {
-    "chalk": "^2.4.1"
+    "chalk": "^2.4.1",
+    "shortid": "^2.2.14"
   }
 }

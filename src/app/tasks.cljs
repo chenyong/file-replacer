@@ -9,10 +9,9 @@
 
 (defn grab-component-refs! [file-path content read! write!]
   (let [lines (->> (string/split-lines content)
-                   (filter
-                    (fn [line] (string/includes? line "materials: plantData.materials")))
+                   (filter (fn [line] (string/includes? line "CSS")))
                    (map string/trim))]
-    (when (not (empty? lines)) (println file-path (count lines) "materials")))
+    (when (not (empty? lines)) (println (.blue chalk file-path)) (println lines)))
   (read!))
 
 (defn replace-code-import-space! [file-path content write!]
