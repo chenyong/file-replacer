@@ -7,12 +7,24 @@
             ["chalk" :as chalk]
             [cljs.core.async :refer [chan <! >! close! go go-loop]]))
 
-(defn grab-component-refs! [file-path content read! write!]
-  (let [lines (->> (string/split-lines content)
-                   (filter (fn [line] (string/includes? line "CSS")))
-                   (map string/trim))]
-    (when (not (empty? lines)) (println (.blue chalk file-path)) (println lines)))
-  (read!))
+(defn grab-component-refs! [file-path on-finish]
+  (let [readable (fs/createReadStream file-path), *results (atom [])]
+    (.on
+     readable
+     "data"
+     (fn [chunk]
+       (let [lines (string/split chunk "\n")]
+         (doseq [line lines] (if (string/includes? line "电影") (swap! *results conj line))))))
+    (.on
+     readable
+     "end"
+     (fn []
+       (if (not (empty? @*results))
+         (do
+          (println)
+          (println (.blue chalk file-path))
+          (println (string/join "\n" @*results))))
+       (on-finish)))))
 
 (defn replace-code-import-space! [file-path content write!]
   (let [x1 (re-pattern "import \\{\\s+(\\w+\\,?\\s+)*\\} from \"shared/common/layout\";")

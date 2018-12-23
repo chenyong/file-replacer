@@ -3,7 +3,7 @@
   (:require ["fs" :as fs]
             ["path" :as path]
             [clojure.string :as string]
-            [clojure.set :refer [difference intersection]]
+            [clojure.set :refer [difference intersection union]]
             ["chalk" :as chalk]
             [cljs.core.async :refer [chan <! >! close! go go-loop]]
             [app.tasks :as tasks]
@@ -24,69 +24,59 @@
     <result))
 
 (defn file-filter [x]
-  (or true
-      (cond
-        (string/ends-with? x "route-configs.ts") false
-        (string/includes? x "apis/") false
-        (string/ends-with? x ".tsx") true
-        (string/ends-with? x ".ts") false
-        :else false)))
+  (cond
+    (string/ends-with? x "route-configs.ts") false
+    (string/includes? x "apis/") false
+    (string/ends-with? x ".tsx") true
+    (string/ends-with? x ".ts") false
+    (string/ends-with? x ".md") true
+    :else false))
 
 (defn folder-filter [x]
   (let [ignored #{"node_modules" ".git"}]
-    (cond (contains? ignored x) false (string/starts-with? x ".") false :else true)))
+    (cond
+      (contains? ignored x) false
+      (string/starts-with? x ".") false
+      (string/ends-with? x ".git") false
+      (string/includes? x "/.") false
+      :else true)))
 
-(defn replace-file! [file-path content read! write!]
-  (comment println file-path)
-  (tasks/grab-component-refs! file-path content read! write!)
-  (comment tasks/replace-code-import-space! file-path content write!)
-  (comment tasks/replace-code-layout! file-path content write!))
+(defn process-file! [file on-finish] (tasks/grab-component-refs! file on-finish))
 
-(defn process-file! [file call-next]
-  (fs/readFile
-   file
-   "utf8"
-   (fn [err content]
-     (replace-file!
-      file
-      content
-      call-next
-      (fn [content]
-        (println (chalk/red (<< "Writing to ~{file}")))
-        (fs/writeFile file content (fn [err] (call-next))))))))
-
-(defn read-loop [*resource on-continue]
-  (if (empty? @*resource)
-    (delay!
-     0.4
-     #(if (empty? @*resource) (println "Give up.") (read-loop *resource on-continue)))
-    (let [file (first @*resource)]
-      (on-continue file #(read-loop *resource on-continue))
-      (swap! *resource disj file))))
-
-(defn traverse! [base on-collect]
+(defn traverse! [base on-finish]
   (go
-   (comment println "starting the block")
    (let [[err dirs] (<! (areaddir base))
          children (->> (js->clj dirs) (map (fn [x] (path/join base x))))
-         [folders files] (<! (divide-paths children))]
-     (comment println "read about children")
-     (doseq [x (filter file-filter files)]
+         [folders files] (<! (divide-paths children))
+         active-files (filter file-filter files)
+         active-folders (filter folder-filter folders)
+         *pending (atom (union (set active-files) (set active-folders)))
+         check-finished! (fn []
+                           (if (empty? @*pending)
+                             (do
+                              (comment println (.blue chalk (<< "Finished ~{base}")))
+                              (on-finish))))
+         count-finished (fn [x]
+                          (swap! *pending disj x)
+                          (comment println (.gray chalk base))
+                          (check-finished!))]
+     (doseq [x active-files]
        (comment println (chalk/yellow (<< "File: ~{x}")))
-       (on-collect x))
-     (doseq [y (filter folder-filter folders)] (traverse! y on-collect)))))
+       (process-file! x #(count-finished x)))
+     (doseq [y active-folders] (traverse! y #(count-finished y)))
+     (check-finished!))))
 
 (defn task! []
-  (let [*file-collection (atom #{})]
-    (println "Task started")
-    (traverse! "." (fn [file] (swap! *file-collection conj file)))
-    (comment process-file! file (fn [] (println "call nexted")))
-    (read-loop
-     *file-collection
-     (fn [file on-next]
-       (comment println "read file" file)
-       (process-file! file (fn [] (on-next)))))))
+  (println)
+  (println)
+  (println (.yellow chalk "Task started"))
+  (traverse! "." (fn [] (println) (println (.yellow chalk "Task finished")))))
 
 (defn main! [] (task!))
 
-(defn reload! [] (task!))
+(defn reload! [] (js/console.clear) (task!))
+
+(defn replace-file! [file-path content read! write!]
+  (comment println file-path)
+  (comment tasks/replace-code-import-space! file-path content write!)
+  (comment tasks/replace-code-layout! file-path content write!))
