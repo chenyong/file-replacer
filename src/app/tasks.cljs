@@ -5,26 +5,27 @@
             [clojure.string :as string]
             [clojure.set :refer [difference intersection]]
             ["chalk" :as chalk]
-            [cljs.core.async :refer [chan <! >! close! go go-loop]]))
+            [cljs.core.async :refer [chan <! >! close! go go-loop]]
+            [app.util :refer [read-file-by-line]]))
 
 (defn grab-component-refs! [file-path on-finish]
-  (let [readable (fs/createReadStream file-path), *results (atom [])]
-    (.on
-     readable
-     "data"
-     (fn [chunk]
-       (let [lines (string/split chunk "\n")]
-         (doseq [line lines] (if (string/includes? line "电影") (swap! *results conj line))))))
-    (.on
-     readable
-     "end"
-     (fn []
-       (if (not (empty? @*results))
+  (let [*results (atom [])
+        <lines (read-file-by-line file-path)
+        show-results! (fn []
+                        (if (not (empty? @*results))
+                          (do
+                           (println)
+                           (println (.blue chalk file-path))
+                           (println (string/join "\n" @*results)))))
+        found-pattern? (fn [line] (string/includes? line "plantData."))]
+    (go-loop
+     []
+     (let [lines (<! <lines)]
+       (if (some? lines)
          (do
-          (println)
-          (println (.blue chalk file-path))
-          (println (string/join "\n" @*results))))
-       (on-finish)))))
+          (doseq [line lines] (if (found-pattern? line) (swap! *results conj line)))
+          (recur))
+         (do (show-results!) (on-finish)))))))
 
 (defn replace-code-import-space! [file-path content write!]
   (let [x1 (re-pattern "import \\{\\s+(\\w+\\,?\\s+)*\\} from \"shared/common/layout\";")

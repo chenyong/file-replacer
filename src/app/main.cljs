@@ -28,8 +28,8 @@
     (string/ends-with? x "route-configs.ts") false
     (string/includes? x "apis/") false
     (string/ends-with? x ".tsx") true
-    (string/ends-with? x ".ts") false
-    (string/ends-with? x ".md") true
+    (string/ends-with? x ".ts") true
+    (string/ends-with? x ".md") false
     :else false))
 
 (defn folder-filter [x]
