@@ -17,7 +17,7 @@
                            (println)
                            (println (.blue chalk file-path))
                            (println (string/join "\n" @*results)))))
-        found-pattern? (fn [line] (string/includes? line "plantData."))]
+        found-pattern? (fn [line] (string/includes? line "router.go("))]
     (go-loop
      []
      (let [lines (<! <lines)]

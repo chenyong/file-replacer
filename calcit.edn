@@ -1,5 +1,4 @@
 {
- :sessions {}
  :users {
   "0RqAhUtpE" {:name "root", :id "0RqAhUtpE", :nickname "root", :avatar nil, :password "d41d8cd98f00b204e9800998ecf8427e", :theme :star-trail}
  }
@@ -1385,7 +1384,7 @@
                 :data {
                  "T" {:type :leaf, :by "0RqAhUtpE", :at 1545619648076, :text "string/includes?", :id "P5Gm2vPdeV"}
                  "j" {:type :leaf, :by "0RqAhUtpE", :at 1545619648076, :text "line", :id "GbRKAlbQmn"}
-                 "r" {:type :leaf, :by "0RqAhUtpE", :at 1545619648076, :text "\"plantData.", :id "ieshdofPPv"}
+                 "r" {:type :leaf, :by "0RqAhUtpE", :at 1548051591829, :text "\"router.go(", :id "ieshdofPPv"}
                 }
                }
               }
@@ -2259,10 +2258,5 @@
    }
   }
  }
- :saved-files {}
  :configs {:storage-key "calcit.edn", :local-storage-key "calcit-storage", :extension ".cljs", :output "src", :port 6001}
- :repl {
-  :alive? false
-  :logs {}
- }
 }

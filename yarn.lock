@@ -561,10 +561,10 @@ shadow-cljs-jar@1.3.0:
   resolved "https://registry.yarnpkg.com/shadow-cljs-jar/-/shadow-cljs-jar-1.3.0.tgz#e25c4fa57c0b405096250884b164c112654a06a3"
   integrity sha512-KReNVgFVM2ZPPGCP8rsCPqtlee/+SwXyoeEqbAXBO7jlpoNnNee2x4fiRg/Pr/vXGEkV/Ez5l4qdNSU1Na+1Jg==
 
-shadow-cljs@^2.7.9:
-  version "2.7.9"
-  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-2.7.9.tgz#389e712b2a4c66cb5fbefb7c655614bef0877d14"
-  integrity sha512-3g3dijT5ztwukidXDyhda6AaPrFge5j9b69SUOzXXqgVr6JDslcCOY/l0midF1c15uT9GDx/JoprRlkRhPWgaA==
+shadow-cljs@^2.7.16:
+  version "2.7.16"
+  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-2.7.16.tgz#ba1efa1c59c602453befdbcb192ef82c5af8616b"
+  integrity sha512-5BZfhUJbrFwyT1krphsQ2CpjkPeQSqC8MPZwbk24YVOs3253pgQTteVzMjGbaChBJcyxPXzXYigvpl3Q7BSqQA==
   dependencies:
     mkdirp "^0.5.1"
     node-libs-browser "^2.0.0"
@@ -588,10 +588,10 @@ source-map-support@^0.4.15:
   dependencies:
     source-map "^0.5.6"
 
-source-map-support@^0.5.9:
-  version "0.5.9"
-  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.9.tgz#41bc953b2534267ea2d605bccfa7bfa3111ced5f"
-  integrity sha512-gR6Rw4MvUlYy83vP0vxoVNzM6t8MUXqNuRsuBmBHQDu1Fh6X015FrLdgoDKcNdkwGubozq0P4N0Q37UyFVr1EA==
+source-map-support@^0.5.10:
+  version "0.5.10"
+  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.10.tgz#2214080bc9d51832511ee2bab96e3c2f9353120c"
+  integrity sha512-YfQ3tQFTK/yzlGJuX8pTwa4tifQj4QS2Mj7UegOu8jAz59MqIiMGPXxQhVQiIMNzayuUSF/jEuVnfFF5JqybmQ==
   dependencies:
     buffer-from "^1.0.0"
     source-map "^0.6.0"
