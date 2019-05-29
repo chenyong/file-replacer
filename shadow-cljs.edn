@@ -1,6 +1,6 @@
 
 {:source-paths ["src"]
- :dependencies [[cumulo/util      "0.1.5"]
+ :dependencies [[cumulo/util      "0.1.10"]
                 [cljs-node-io     "1.1.2"]
                 [org.clojure/core.incubator "0.1.4"]]
  :builds {:app {:target :node-script
