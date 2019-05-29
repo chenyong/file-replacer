@@ -41,7 +41,9 @@
       (string/includes? x "/.") false
       :else true)))
 
-(defn process-file! [file on-finish] (tasks/grab-component-refs! file on-finish))
+(defn process-file! [file on-finish]
+  (comment tasks/grab-component-refs! file on-finish)
+  (tasks/grab-lingual! file on-finish))
 
 (defn traverse! [base on-finish]
   (go

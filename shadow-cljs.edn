@@ -1,7 +1,8 @@
 
 {:source-paths ["src"]
- :dependencies [[cumulo/util      "0.1.10"]
-                [cljs-node-io     "1.1.2"]
+ :dependencies [[cumulo/util            "0.1.10"]
+                [cljs-node-io           "1.1.2"]
+                [mvc-works/chan-utils   "0.1.0"]
                 [org.clojure/core.incubator "0.1.4"]]
  :builds {:app {:target :node-script
                 :output-to "target/main.js"

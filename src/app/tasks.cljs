@@ -6,7 +6,8 @@
             [clojure.set :refer [difference intersection]]
             ["chalk" :as chalk]
             [cljs.core.async :refer [chan <! >! close! go go-loop]]
-            [app.util :refer [read-file-by-line]]))
+            [app.util :refer [read-file-by-line]]
+            [cljs-node-io.fs :refer [areadFile]]))
 
 (defn grab-component-refs! [file-path on-finish]
   (let [*results (atom [])
@@ -26,6 +27,16 @@
           (doseq [line lines] (if (found-pattern? line) (swap! *results conj line)))
           (recur))
          (do (show-results!) (on-finish)))))))
+
+(defn grab-lingual! [file on-finish]
+  (go
+   (let [[err content] (<! (areadFile file "utf8"))
+         pieces (->> (re-seq #"(lang|lingual)\.[\w\d]+" content)
+                     (map first)
+                     (map pr-str)
+                     (string/join " "))]
+     (println pieces)
+     (on-finish))))
 
 (defn replace-code-import-space! [file-path content write!]
   (let [x1 (re-pattern "import \\{\\s+(\\w+\\,?\\s+)*\\} from \"shared/common/layout\";")
