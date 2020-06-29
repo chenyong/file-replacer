@@ -8,7 +8,8 @@
             [cljs.core.async :refer [chan <! >! close! go go-loop]]
             [app.tasks :as tasks]
             [cljs-node-io.fs :refer [areaddir areadFile awriteFile afile? adir?]]
-            [cumulo-util.core :refer [delay!]])
+            [cumulo-util.core :refer [delay!]]
+            [app.tasks.lilac :as tasks-lilac])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn divide-paths [xs0]
@@ -46,7 +47,8 @@
   (comment tasks/grab-lingual! file on-finish)
   (comment tasks/replace-lodash! file on-finish)
   (comment tasks/unused-lodash! file on-finish)
-  (tasks/replace-optional-prop! file on-finish))
+  (comment tasks/replace-optional-prop! file on-finish)
+  (tasks-lilac/sort-imports! file on-finish))
 
 (defn traverse! [base on-finish]
   (go
