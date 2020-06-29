@@ -43,7 +43,10 @@
 
 (defn process-file! [file on-finish]
   (comment tasks/grab-component-refs! file on-finish)
-  (tasks/grab-lingual! file on-finish))
+  (comment tasks/grab-lingual! file on-finish)
+  (comment tasks/replace-lodash! file on-finish)
+  (comment tasks/unused-lodash! file on-finish)
+  (tasks/replace-optional-prop! file on-finish))
 
 (defn traverse! [base on-finish]
   (go
