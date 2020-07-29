@@ -9,6 +9,15 @@
             [app.util :refer [read-file-by-line]]
             [cljs-node-io.fs :refer [areadFile awriteFile]]))
 
+(defn dup-semicolon! [file on-finish]
+  (go
+   (let [[err content] (<! (areadFile file "utf8"))]
+     (when (string/includes? content "es\";;")
+       (let [new-content (string/replace content "es\";;" "es\";")]
+         (println (chalk/red file))
+         (<! (awriteFile file new-content nil))))
+     (on-finish))))
+
 (defn grab-component-refs! [file-path on-finish]
   (let [*results (atom [])
         <lines (read-file-by-line file-path)

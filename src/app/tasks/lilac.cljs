@@ -19,7 +19,8 @@
               one-of+
               many+
               interleave+
-              some+]]))
+              some+]]
+            [lilac-parser.preset :refer [lilac-digit lilac-alphabet]]))
 
 (defn to-nil [xs] nil)
 
@@ -27,14 +28,10 @@
 
 (def comma-parser (combine+ [(is+ ",") space-parser] to-nil))
 
-(def digit-parser (one-of+ "1234567890"))
-
-(def letter-parser (one-of+ "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"))
-
 (def variable-parser
   (combine+
-   [letter-parser
-    (many+ (or+ [letter-parser (one-of+ "_$") digit-parser]) (fn [xs] (string/join "" xs)))]
+   [lilac-alphabet
+    (many+ (or+ [lilac-alphabet (one-of+ "_$") lilac-digit]) (fn [xs] (string/join "" xs)))]
    (fn [xs] (string/join "" xs))))
 
 (def import-vars-parser

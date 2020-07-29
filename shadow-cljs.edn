@@ -4,7 +4,7 @@
     [cumulo/util "0.1.12"]
     [cljs-node-io "1.1.2"]
     [mvc-works/chan-utils "0.1.1"]
-    [mvc-works/lilac-parser "0.0.3-a3"]
+    [mvc-works/lilac-parser "0.0.3"]
     [org.clojure/core.incubator "0.1.4"]
   ]
   :builds {
