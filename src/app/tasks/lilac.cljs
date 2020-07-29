@@ -48,13 +48,12 @@
     (is+ "}" to-nil)]
    (fn [xs] (comment println "combined imports" xs) (nth xs 4))))
 
-(defn sort-imports! [file on-finish]
+(defn sort-imports! [file content write!]
   (go
-   (let [[err content] (<! (areadFile file "utf8"))
-         replaced (replace-lilac
+   (let [replaced (replace-lilac
                    (string/split content "")
                    import-vars-parser
                    (fn [result] (str "import { " (->> result sort (string/join ", ")) " }")))]
-     (println (chalk/red "repaced:" file))
-     (<! (awriteFile file (:result replaced) {}))
-     (on-finish))))
+     (if (some? (:result replaced))
+       (<! (write! (:result replaced)))
+       (do (println "Failed" file replaced))))))

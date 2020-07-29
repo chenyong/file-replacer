@@ -16,7 +16,11 @@
   (let [tasks (->> paths
                    (map
                     (fn [x]
-                      (go (if (<! (adir? x)) {:dir? true, :path x} {:dir? false, :path x})))))]
+                      (go
+                       (if (string/includes? x ".")
+                         {:dir? false, :path x}
+                         (if (<! (adir? x)) {:dir? true, :path x} {:dir? false, :path x})))))
+                   doall)]
     (go
      (loop [xs tasks, files [], folders []]
        (comment println "in the Loop" (first xs) (count xs))
@@ -46,15 +50,6 @@
       (string/includes? x "/.") false
       :else true)))
 
-(defn process-file! [file on-finish]
-  (comment tasks/grab-component-refs! file on-finish)
-  (comment tasks/grab-lingual! file on-finish)
-  (comment tasks/replace-lodash! file on-finish)
-  (comment tasks/unused-lodash! file on-finish)
-  (comment tasks/replace-optional-prop! file on-finish)
-  (comment tasks-lilac/sort-imports! file on-finish)
-  (tasks/dup-semicolon! file on-finish))
-
 (defn process-folder! [base task-runner]
   (go
    (let [[err dirs] (<! (areaddir base))
@@ -69,49 +64,38 @@
                          (map
                           (fn [file]
                             (go
-                             (let [content (<! (areadFile file "utf8"))
+                             (println "task start")
+                             (let [[err content] (<! (areadFile file "utf8"))
+                                   *modified (atom false)
                                    write-content! (fn [text]
-                                                    (<! (awriteFile file text nil)))]
-                               (<! (task-runner file content write-content!))))))
+                                                    (go (<! (awriteFile file text nil))))]
+                               (if (some? err)
+                                 (js/console.log (chalk/red "Failed to read" file err))
+                                 (do
+                                  (<! (task-runner file content write-content!))
+                                  (when @*modified (println (chalk/red "Modified" file)))))))))
                          doall)]
-     (doseq [x file-tasks] (<! x))
-     (doseq [x folder-tasks] (<! x)))))
-
-(defn traverse! [base on-finish]
-  (go
-   (let [[err dirs] (<! (areaddir base))
-         children (->> (js->clj dirs) (map (fn [x] (path/join base x))))
-         [folders files] (<! (divide-paths children))
-         active-files (filter file-filter files)
-         active-folders (filter folder-filter folders)
-         *pending (atom (union (set active-files) (set active-folders)))
-         check-finished! (fn []
-                           (if (empty? @*pending)
-                             (do
-                              (comment println (.blue chalk (<< "Finished ~{base}")))
-                              (on-finish))))
-         count-finished (fn [x]
-                          (swap! *pending disj x)
-                          (comment println (.gray chalk base))
-                          (check-finished!))]
-     (doseq [x active-files]
-       (comment println (chalk/yellow (<< "File: ~{x}")))
-       (process-file! x #(count-finished x)))
-     (doseq [y active-folders] (traverse! y #(count-finished y)))
-     (check-finished!))))
+     (doseq [x folder-tasks] (<! x))
+     (doseq [x file-tasks] (<! x)))))
 
 (defn task! []
-  (println)
-  (println)
-  (println (chalk/yellow "Task started"))
-  (comment traverse! "." (fn [] (println) (println (.yellow chalk "Task finished"))))
   (go
-   (<!
-    (process-folder!
-     "."
-     (fn [filepath content write-content!]
-       (go (let [x (rand-int 2000)] (<! (timeout x)) (println filepath (str x "ms")))))))
-   (println (chalk/yellow "All finished"))))
+   (println)
+   (println (chalk/yellow "Task started, async I/O are queued..."))
+   (let [started (js/Date.now)]
+     (<!
+      (process-folder!
+       "."
+       (fn [filepath content write!]
+         (go
+          (comment tasks/grab-component-refs! file on-finish)
+          (comment tasks/grab-lingual! file on-finish)
+          (comment tasks/replace-lodash! file on-finish)
+          (comment tasks/unused-lodash! file on-finish)
+          (comment tasks/replace-optional-prop! file on-finish)
+          (<! (tasks-lilac/sort-imports! filepath content write!))
+          (comment <! (tasks/dup-semicolon! filepath content write!))))))
+     (println (chalk/yellow "All finished, took" (str (- (js/Date.now) started) "ms"))))))
 
 (defn main! [] (task!))
 
