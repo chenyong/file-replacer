@@ -64,7 +64,6 @@
                          (map
                           (fn [file]
                             (go
-                             (println "task start")
                              (let [[err content] (<! (areadFile file "utf8"))
                                    *modified (atom false)
                                    write-content! (fn [text]
@@ -93,8 +92,11 @@
           (comment tasks/replace-lodash! file on-finish)
           (comment tasks/unused-lodash! file on-finish)
           (comment tasks/replace-optional-prop! file on-finish)
-          (<! (tasks-lilac/sort-imports! filepath content write!))
-          (comment <! (tasks/dup-semicolon! filepath content write!))))))
+          (comment <! (tasks-lilac/sort-imports! filepath content write!))
+          (comment <! (tasks/dup-semicolon! filepath content write!))
+          (comment <! (tasks-lilac/replace-equals! filepath content write!))
+          (comment <! (tasks-lilac/replace-time-format! filepath content write!))
+          (<! (tasks-lilac/find-colors! filepath content write!))))))
      (println (chalk/yellow "All finished, took" (str (- (js/Date.now) started) "ms"))))))
 
 (defn main! [] (task!))

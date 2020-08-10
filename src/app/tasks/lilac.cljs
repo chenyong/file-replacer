@@ -11,6 +11,7 @@
             [lilac-parser.core
              :refer
              [replace-lilac
+              find-lilac
               defparser
               is+
               or+
@@ -19,7 +20,8 @@
               one-of+
               many+
               interleave+
-              some+]]
+              some+
+              other-than+]]
             [lilac-parser.preset :refer [lilac-digit lilac-alphabet]]))
 
 (defn to-nil [xs] nil)
@@ -27,6 +29,72 @@
 (def space-parser (some+ (is+ " ") to-nil))
 
 (def comma-parser (combine+ [(is+ ",") space-parser] to-nil))
+
+(def lilac-comma (combine+ [(is+ ",") (some+ (is+ " "))] (fn [xs] ", ")))
+
+(def lilac-float
+  (combine+
+   [(many+ lilac-digit (fn [xs] (string/join "" xs)))
+    (optional+
+     (combine+
+      [(is+ ".") (many+ lilac-digit (fn [xs] (string/join "" xs)))]
+      (fn [xs] (string/join "" xs)))
+     (fn [xs] (str xs)))]
+   (fn [xs] (string/join "" xs))))
+
+(def lilac-hex (one-of+ "0123456789abcdefABCDEF"))
+
+(def lilac-colors
+  (or+
+   [(combine+
+     [(is+ "#")
+      lilac-hex
+      lilac-hex
+      lilac-hex
+      (optional+ (combine+ [lilac-hex lilac-hex lilac-hex] (fn [xs] (string/join "" xs))))]
+     (fn [xs] (string/join "" xs)))
+    (combine+
+     [(is+ "rgb(") lilac-float lilac-comma lilac-float lilac-comma lilac-float (is+ ")")]
+     (fn [xs] (string/join "" xs)))
+    (combine+
+     [(is+ "rgba(")
+      lilac-float
+      lilac-comma
+      lilac-float
+      lilac-comma
+      lilac-float
+      lilac-comma
+      lilac-float
+      (is+ ")")]
+     (fn [xs] (string/join "" xs)))
+    (combine+
+     [(is+ "hsl(")
+      lilac-float
+      lilac-comma
+      lilac-float
+      (is+ "%")
+      lilac-comma
+      lilac-float
+      (is+ "%)")]
+     (fn [xs] (string/join "" xs)))
+    (combine+
+     [(is+ "hsla(")
+      lilac-float
+      lilac-comma
+      lilac-float
+      (is+ "%")
+      lilac-comma
+      lilac-float
+      (is+ "% ")
+      lilac-comma
+      lilac-float
+      (is+ ")")]
+     (fn [xs] (string/join "" xs)))]))
+
+(defn find-colors! [filepath content write!]
+  (go
+   (let [result (find-lilac content lilac-colors)]
+     (when (not (empty? (:result result))) (println (pr-str (map :value (:result result))))))))
 
 (def variable-parser
   (combine+
@@ -47,6 +115,42 @@
     space-parser
     (is+ "}" to-nil)]
    (fn [xs] (comment println "combined imports" xs) (nth xs 4))))
+
+(def lilac-equals
+  (combine+
+   [(is+ " == " (fn [] nil))
+    (or+
+     [(many+ lilac-alphabet (fn [x] (string/join "" x)))
+      (many+ lilac-digit (fn [x] (string/join "" x)))
+      (combine+
+       [(is+ "\"" (fn [x] "\""))
+        (many+ (other-than+ "\"") (fn [x] (string/join "" x)))
+        (is+ "\"" (fn [x] "\""))]
+       (fn [x] (string/join "" x)))]
+     (fn [x] x))]
+   (fn [x] (last x))))
+
+(defn replace-equals! [filepath content write!]
+  (go
+   (let [result (find-lilac content lilac-equals)]
+     (when (not (empty? (->> (:result result) (remove (fn [x] (or (= (:value x) "null")))))))
+       (println "replacing" filepath (pr-str (:result result)))
+       (let [info (replace-lilac
+                   content
+                   lilac-equals
+                   (fn [x]
+                     (case x "null" " == null" "undefined" " == null" (str " === " x))))]
+         (<! (write! (:result info))))))))
+
+(def time-format-lilac
+  (combine+
+   [(is+ ".format(\"") (many+ (other-than+ "\"") (fn [xs] (string/join "" xs))) (is+ "\")")]
+   (fn [xs] (nth xs 1))))
+
+(defn replace-time-format! [filepath content write!]
+  (go
+   (let [result (find-lilac content time-format-lilac)]
+     (when (not (empty? (:result result))) (println (pr-str (map :value (:result result))))))))
 
 (defn sort-imports! [file content write!]
   (go
