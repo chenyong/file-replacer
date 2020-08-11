@@ -96,7 +96,8 @@
           (comment <! (tasks/dup-semicolon! filepath content write!))
           (comment <! (tasks-lilac/replace-equals! filepath content write!))
           (comment <! (tasks-lilac/replace-time-format! filepath content write!))
-          (<! (tasks-lilac/find-colors! filepath content write!))))))
+          (comment <! (tasks-lilac/find-colors! filepath content write!))
+          (<! (tasks-lilac/more-optional! filepath content write!))))))
      (println (chalk/yellow "All finished, took" (str (- (js/Date.now) started) "ms"))))))
 
 (defn main! [] (task!))

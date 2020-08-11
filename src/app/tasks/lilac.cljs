@@ -130,6 +130,53 @@
      (fn [x] x))]
    (fn [x] (last x))))
 
+(defn more-optional! [filepath content write!]
+  (go
+   (let [lilac-variable (many+
+                         (or+ [lilac-alphabet lilac-digit (one-of+ ".?[]")])
+                         (fn [xs] (string/join "" xs)))
+         lilac-pattern (combine+
+                        [lilac-variable
+                         (is+ " && " (fn [x] nil))
+                         lilac-variable
+                         (or+ [(is+ ".") (is+ "(") (is+ "[")])]
+                        (fn [xs]
+                          (comment println "xs" (pr-str xs))
+                          {:from (nth xs 0), :to (nth xs 2), :suffix (nth xs 3)}))]
+     (when (string/includes? content " && ")
+       (let [changed (->> (string/split content "\n")
+                          (map
+                           (fn [line]
+                             (if (string/includes? line " && ")
+                               (:result
+                                (replace-lilac
+                                 line
+                                 lilac-pattern
+                                 (fn [info]
+                                   (let [from (string/replace (:from info) "?" "")
+                                         to (:to info)]
+                                     (if (string/starts-with? to from)
+                                       (if (= to from)
+                                         (let [replaced (str (:from info) "?." (:suffix info))]
+                                           (println "\n" "\n" "=====Replaced:")
+                                           (println replaced)
+                                           (println "info" info (pr-str line))
+                                           replaced)
+                                         (let [replaced (str
+                                                         (:from info)
+                                                         "?"
+                                                         (string/replace to from "")
+                                                         (:suffix info))]
+                                           (println "\n" "\n" "=====Replaced:")
+                                           (println replaced)
+                                           (println "info" info (pr-str line))
+                                           replaced))
+                                       (str (:from info) " && " (:to info) (:suffix info)))))))
+                               line)))
+                          (string/join "\n"))
+             changed (if (string/ends-with? content "\n") (str changed "\n") changed)]
+         (when (not= changed content) (println "Changed:" filepath) (<! (write! changed))))))))
+
 (defn replace-equals! [filepath content write!]
   (go
    (let [result (find-lilac content lilac-equals)]
