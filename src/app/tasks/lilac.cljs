@@ -202,6 +202,8 @@
      (fn [x] x))]
    (fn [x] (last x))))
 
+(def lilac-variable (many+ lilac-alphabet (fn [xs] (string/join "" xs))))
+
 (defn more-optional! [filepath content write!]
   (go
    (let [lilac-variable (many+
@@ -270,6 +272,34 @@
   (go
    (let [result (find-lilac content time-format-lilac)]
      (when (not (empty? (:result result))) (println (pr-str (map :value (:result result))))))))
+
+(defn rm-id-imports! [filepath content write!]
+  (go
+   (let [lilac-nil-comma (combine+ [(is+ ",") (some+ (is+ " "))] (fn [xs] nil))
+         lilac-import (combine+
+                       [(is+ "import { ")
+                        (interleave+
+                         lilac-variable
+                         lilac-nil-comma
+                         (fn [xs] (filter some? xs)))
+                        (is+ (str " } from \"shared/types\";" "\n"))]
+                       (fn [xs] (nth xs 1)))]
+     (comment println "processing" filepath)
+     (when (string/includes? content "types\"")
+       (let [result (replace-lilac
+                     content
+                     lilac-import
+                     (fn [info]
+                       (let [remaining (->> info (remove (fn [x] (= x "Id"))))]
+                         (if (empty? remaining)
+                           ""
+                           (str
+                            "import { "
+                            (string/join ", " remaining)
+                            " } from \"shared/types\";"
+                            "\n")))))
+             replaced (:result result)]
+         (when (not= replaced content) (println "Replacing" filepath) (<! (write! replaced))))))))
 
 (defn sort-imports! [file content write!]
   (go

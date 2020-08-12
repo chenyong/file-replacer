@@ -34,7 +34,7 @@
 (defn file-filter [x]
   (cond
     (string/ends-with? x "route-configs.ts") false
-    (string/includes? x "apis/") false
+    (string/includes? x "apis/") true
     (string/ends-with? x ".tsx") true
     (string/ends-with? x ".ts") true
     (string/ends-with? x ".md") false
@@ -98,7 +98,8 @@
           (comment <! (tasks-lilac/replace-time-format! filepath content write!))
           (comment <! (tasks-lilac/find-colors! filepath content write!))
           (comment <! (tasks-lilac/more-optional! filepath content write!))
-          (<! (tasks-lilac/import-layouts! filepath content write!))))))
+          (comment <! (tasks-lilac/import-layouts! filepath content write!))
+          (<! (tasks-lilac/rm-id-imports! filepath content write!))))))
      (println (chalk/yellow "All finished, took" (str (- (js/Date.now) started) "ms"))))))
 
 (defn main! [] (task!))
