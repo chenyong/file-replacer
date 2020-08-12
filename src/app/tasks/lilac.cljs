@@ -96,6 +96,78 @@
    (let [result (find-lilac content lilac-colors)]
      (when (not (empty? (:result result))) (println (pr-str (map :value (:result result))))))))
 
+(def lilac-import-layouts
+  (combine+
+   [(is+ "import { " (fn [x] nil))
+    (some+ (is+ " ") (fn [x] nil))
+    (interleave+
+     (many+ (or+ [lilac-alphabet lilac-digit]) (fn [xs] (string/join "" xs)))
+     (combine+ [(is+ ",") (some+ (is+ " "))] (fn [xs] nil))
+     (fn [xs] (filter some? xs)))
+    (some+ (is+ " ") (fn [x] nil))
+    (is+ "} from \"" (fn [x] nil))
+    (or+
+     [(is+ "shared/common/layout")
+      (is+ "./layout")
+      (is+ "../layout")
+      (is+ "../../layout")
+      (is+ "../../../layout")]
+     (fn [x] x))
+    (is+ "\";" (fn [x] nil))]
+   (fn [xs] {:defs (nth xs 2), :from (nth xs 5)})))
+
+(defn import-layouts! [filepath content write!]
+  (go
+   (when (string/includes? content "/layout")
+     (let [basic-layouts #{"fullscreen"
+                           "row"
+                           "column"
+                           "rowCenter"
+                           "center"
+                           "rowParted"
+                           "fullHeight"
+                           "rowMiddle"}
+           changed (->> (string/split content "\n")
+                        (map
+                         (fn [line]
+                           (if (and (string/includes? line "import ")
+                                    (string/includes? line "/layout"))
+                             (:result
+                              (replace-lilac
+                               line
+                               lilac-import-layouts
+                               (fn [info]
+                                 (let [moved-defs (->> (:defs info)
+                                                       (filter
+                                                        (fn [x] (contains? basic-layouts x))))
+                                       remained-defs (->> (:defs info)
+                                                          (remove
+                                                           (fn [x]
+                                                             (contains? basic-layouts x))))]
+                                   (println "see" moved-defs remained-defs)
+                                   (->> [(if (empty? moved-defs)
+                                           nil
+                                           (str
+                                            "import { "
+                                            (string/join ", " moved-defs)
+                                            " } from \"@jimengio/flex-styles\";"))
+                                         (if (empty? remained-defs)
+                                           nil
+                                           (str
+                                            "import { "
+                                            (string/join ", " remained-defs)
+                                            " } from \""
+                                            (:from info)
+                                            "\";"))]
+                                        (filter some?)
+                                        (string/join "\n"))))))
+                             line)))
+                        (string/join "\n"))
+           changed (if (string/ends-with? content "\n") (str changed "\n") changed)]
+       (when (not= changed content)
+         (println "Changed:" filepath (count changed) (count content))
+         (<! (write! changed)))))))
+
 (def variable-parser
   (combine+
    [lilac-alphabet
